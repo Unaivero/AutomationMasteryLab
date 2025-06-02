@@ -1,0 +1,102 @@
+stages:
+  - setup
+  - test
+  - report
+
+variables:
+  PYTHON_VERSION: "3.9"
+  ALLURE_VERSION: "2.22.0"
+
+# Cache dependencies between jobs
+cache:
+  paths:
+    - .pip-cache/
+    - node_modules/
+
+# Setup stage
+setup:
+  stage: setup
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install --cache-dir=.pip-cache -r requirements.txt
+    - apt-get update && apt-get install -y nodejs npm
+    - npm install -g newman newman-reporter-htmlextra
+  artifacts:
+    paths:
+      - .pip-cache/
+      - node_modules/
+
+# Selenium Tests
+selenium_tests:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  services:
+    - selenium/standalone-chrome:latest
+  script:
+    - cd selenium-tests
+    - python -m pytest tests/ --alluredir=../reports/allure-results
+  artifacts:
+    paths:
+      - reports/allure-results/
+    reports:
+      junit: reports/junit-*.xml
+
+# API Tests with Postman/Newman
+api_tests:
+  stage: test
+  image: node:16-alpine
+  script:
+    - cd postman-tests
+    - chmod +x run_tests.sh
+    - ./run_tests.sh
+  artifacts:
+    paths:
+      - reports/postman-reports/
+    reports:
+      junit: reports/postman-reports/junit/report.xml
+
+# JMeter Load Tests
+jmeter_tests:
+  stage: test
+  image: justb4/jmeter:5.5
+  script:
+    - cd jmeter-tests
+    - jmeter -n -t api_load_test.jmx -l ../reports/jmeter-results/results.jtl -e -o ../reports/jmeter-results/dashboard
+  artifacts:
+    paths:
+      - reports/jmeter-results/
+
+# Generate Reports
+generate_reports:
+  stage: report
+  image: python:${PYTHON_VERSION}
+  script:
+    - wget https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.zip
+    - unzip allure-${ALLURE_VERSION}.zip -d /opt/
+    - export PATH=$PATH:/opt/allure-${ALLURE_VERSION}/bin/
+    - allure generate reports/allure-results -o reports/allure-report --clean
+  artifacts:
+    paths:
+      - reports/allure-report/
+      - reports/postman-reports/
+      - reports/jmeter-results/
+    expire_in: 1 week
+  when: always
+
+# Pages for reports
+pages:
+  stage: report
+  dependencies:
+    - generate_reports
+  script:
+    - mkdir -p public
+    - cp -r reports/allure-report/* public/
+    - mkdir -p public/postman
+    - cp -r reports/postman-reports/html/* public/postman/
+    - mkdir -p public/jmeter
+    - cp -r reports/jmeter-results/dashboard/* public/jmeter/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

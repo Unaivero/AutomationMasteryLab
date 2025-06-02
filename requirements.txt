@@ -1,0 +1,18 @@
+# Selenium dependencies
+selenium==4.10.0
+webdriver-manager==3.8.6
+
+# Test framework
+pytest==7.3.1
+pytest-html==3.2.0
+
+# Reporting
+allure-pytest==2.13.2
+allure-python-commons==2.13.2
+
+# API testing
+requests==2.31.0
+
+# Utilities
+python-dotenv==1.0.0
+faker==18.10.1

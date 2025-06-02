@@ -1,0 +1,368 @@
+{
+	"info": {
+		"_postman_id": "7e9c2f5c-8b4a-4b3e-9e5a-f2c6a2b1c3d4",
+		"name": "API Test Collection",
+		"description": "Collection of API tests for the Automation Mastery Lab",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Users - 200 OK",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Verify response time is less than 1000ms",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"// Verify response has the correct format",
+							"pm.test(\"Response has the correct format\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData.data).to.be.an('array');",
+							"    pm.expect(jsonData.page).to.be.a('number');",
+							"    pm.expect(jsonData.per_page).to.be.a('number');",
+							"    pm.expect(jsonData.total).to.be.a('number');",
+							"});",
+							"",
+							"// Verify response body contains expected data",
+							"pm.test(\"Response body contains expected data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.length).to.be.at.least(1);",
+							"    ",
+							"    // Check first user structure",
+							"    var firstUser = jsonData.data[0];",
+							"    pm.expect(firstUser.id).to.exist;",
+							"    pm.expect(firstUser.email).to.exist;",
+							"    pm.expect(firstUser.first_name).to.exist;",
+							"    pm.expect(firstUser.last_name).to.exist;",
+							"    pm.expect(firstUser.avatar).to.exist;",
+							"});",
+							"",
+							"// Verify headers",
+							"pm.test(\"Content-Type header is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://reqres.in/api/users?page=1",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Get a list of users"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single User - 200 OK",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Verify response time is less than 1000ms",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"// Verify response has the correct format",
+							"pm.test(\"Response has the correct format\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData.data).to.be.an('object');",
+							"});",
+							"",
+							"// Verify response body contains expected data",
+							"pm.test(\"Response body contains expected data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var user = jsonData.data;",
+							"    ",
+							"    pm.expect(user.id).to.exist;",
+							"    pm.expect(user.email).to.exist;",
+							"    pm.expect(user.first_name).to.exist;",
+							"    pm.expect(user.last_name).to.exist;",
+							"    pm.expect(user.avatar).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://reqres.in/api/users/2",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users",
+						"2"
+					]
+				},
+				"description": "Get a single user"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single User - 404 Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify status code is 404",
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Verify response time is less than 1000ms",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"// Verify response body is empty",
+							"pm.test(\"Response body is empty\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(Object.keys(jsonData).length).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://reqres.in/api/users/23",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users",
+						"23"
+					]
+				},
+				"description": "Try to get a non-existent user"
+			},
+			"response": []
+		},
+		{
+			"name": "Create User - 201 Created",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify status code is 201",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Verify response time is less than 1000ms",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"// Verify response has the correct format",
+							"pm.test(\"Response has the correct format\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData.name).to.exist;",
+							"    pm.expect(jsonData.job).to.exist;",
+							"    pm.expect(jsonData.id).to.exist;",
+							"    pm.expect(jsonData.createdAt).to.exist;",
+							"});",
+							"",
+							"// Verify response body contains expected data",
+							"pm.test(\"Response body contains expected data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var requestData = JSON.parse(pm.request.body.raw);",
+							"    ",
+							"    pm.expect(jsonData.name).to.eql(requestData.name);",
+							"    pm.expect(jsonData.job).to.eql(requestData.job);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"John Doe\",\n    \"job\": \"QA Engineer\"\n}"
+				},
+				"url": {
+					"raw": "https://reqres.in/api/users",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				},
+				"description": "Create a new user"
+			},
+			"response": []
+		},
+		{
+			"name": "Update User - 200 OK",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Verify response time is less than 1000ms",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"// Verify response has the correct format",
+							"pm.test(\"Response has the correct format\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData.name).to.exist;",
+							"    pm.expect(jsonData.job).to.exist;",
+							"    pm.expect(jsonData.updatedAt).to.exist;",
+							"});",
+							"",
+							"// Verify response body contains expected data",
+							"pm.test(\"Response body contains expected data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var requestData = JSON.parse(pm.request.body.raw);",
+							"    ",
+							"    pm.expect(jsonData.name).to.eql(requestData.name);",
+							"    pm.expect(jsonData.job).to.eql(requestData.job);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"John Doe Updated\",\n    \"job\": \"Senior QA Engineer\"\n}"
+				},
+				"url": {
+					"raw": "https://reqres.in/api/users/2",
+					"protocol": "https",
+					"host": [
+						"reqres",
+						"in"
+					],
+					"path": [
+						"api",
+						"users",
+						"2"
+					]
+				},
+				"description": "Update an existing user"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Running pre-request script for request: ' + pm.info.requestName);",
+					"",
+					"// Set environment variables if needed",
+					"if (!pm.environment.get('baseUrl')) {",
+					"    pm.environment.set('baseUrl', 'https://reqres.in/api');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"console.log('Running test script for request: ' + pm.info.requestName);",
+					"",
+					"// Common tests for all requests",
+					"pm.test(\"Response is valid JSON\", function() {",
+					"    pm.response.to.be.json;",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://reqres.in/api",
+			"type": "string"
+		}
+	]
+}

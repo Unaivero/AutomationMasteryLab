@@ -1,0 +1,113 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven 3.8.6'
+        jdk 'JDK 11'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'npm install -g newman newman-reporter-htmlextra'
+            }
+        }
+        
+        stage('Run Selenium Tests') {
+            steps {
+                sh 'cd selenium-tests && python -m pytest tests/ --alluredir=../reports/allure-results'
+            }
+            post {
+                always {
+                    junit '**/reports/junit-*.xml'
+                }
+            }
+        }
+        
+        stage('Run API Tests') {
+            steps {
+                sh 'cd postman-tests && ./run_tests.sh'
+            }
+            post {
+                always {
+                    junit 'reports/postman-reports/junit/report.xml'
+                }
+            }
+        }
+        
+        stage('Run JMeter Tests') {
+            steps {
+                sh '''
+                    cd jmeter-tests
+                    jmeter -n -t api_load_test.jmx -l ../reports/jmeter-results/results.jtl -e -o ../reports/jmeter-results/dashboard
+                '''
+            }
+        }
+        
+        stage('Generate Reports') {
+            steps {
+                sh 'allure generate reports/allure-results -o reports/allure-report --clean'
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/allure-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Allure Report',
+                        reportTitles: 'Allure Report'
+                    ])
+                    
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/postman-reports/html',
+                        reportFiles: 'report.html',
+                        reportName: 'Postman Report',
+                        reportTitles: 'Postman Report'
+                    ])
+                    
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'reports/jmeter-results/dashboard',
+                        reportFiles: 'index.html',
+                        reportName: 'JMeter Report',
+                        reportTitles: 'JMeter Report'
+                    ])
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline execution completed'
+        }
+        success {
+            echo 'All tests passed!'
+        }
+        failure {
+            echo 'Tests failed! Check the reports for details.'
+            emailext (
+                subject: "Build Failed: ${currentBuild.fullDisplayName}",
+                body: "The build failed. Check the console output at ${env.BUILD_URL}",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+            )
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}

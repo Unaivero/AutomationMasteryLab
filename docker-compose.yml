@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  automation-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: automation-mastery-lab
+    volumes:
+      - ./reports:/app/reports
+    environment:
+      - BROWSER=chrome
+      - HEADLESS=true
+      - BASE_URL=https://www.saucedemo.com
+      - TEST_USERNAME=standard_user
+      - TEST_PASSWORD=secret_sauce
+    command: ./run_all_tests.sh
+
+  selenium-hub:
+    image: selenium/hub:4.10.0
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:4.10.0
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+    volumes:
+      - /dev/shm:/dev/shm
+
+  firefox:
+    image: selenium/node-firefox:4.10.0
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+    volumes:
+      - /dev/shm:/dev/shm
+
+  allure:
+    image: frankescobar/allure-docker-service
+    container_name: allure-service
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./reports/allure-results:/app/allure-results
+      - ./reports/allure-report:/app/default-reports
+    environment:
+      - CHECK_RESULTS_EVERY_SECONDS=10
+      - KEEP_HISTORY=true
